@@ -1,0 +1,701 @@
+#include <QDialog>
+#include <QLabel>
+#include <QWidget>
+#include <QPixmap>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QCompleter>
+#include <QStringList>
+#include <QDesktopServices>
+#include <QUrl>
+#include <QDateTime>
+#include <QMessageBox>
+#include <QTime>
+#include <QTimer>
+#include <QMainWindow>
+#include <QApplication>
+#include <QHash>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QComboBox>
+#include <QDoubleValidator>
+
+//MOHEL
+
+class CurrencyConverterWidget : public QDialog {
+public:
+    CurrencyConverterWidget(QWidget *parent = nullptr) : QDialog(parent) {
+        setWindowTitle("Currency Converter");
+        setGeometry(100, 100, 300, 200);
+
+        QVBoxLayout *mainLayout = new QVBoxLayout(this);
+
+        QHBoxLayout *inputLayout = new QHBoxLayout;
+        QLabel *amountLabel = new QLabel("Amount:", this);
+        amountEdit = new QLineEdit(this);
+        amountEdit->setValidator(new QDoubleValidator(0, 1000000, 2, this));
+        inputLayout->addWidget(amountLabel);
+        inputLayout->addWidget(amountEdit);
+        mainLayout->addLayout(inputLayout);
+
+        QHBoxLayout *fromCurrencyLayout = new QHBoxLayout;
+        QLabel *fromLabel = new QLabel("From:", this);
+        fromCurrencyCombo = new QComboBox(this);
+        populateCurrencyCombo(fromCurrencyCombo);
+        fromCurrencyLayout->addWidget(fromLabel);
+        fromCurrencyLayout->addWidget(fromCurrencyCombo);
+        mainLayout->addLayout(fromCurrencyLayout);
+
+        QHBoxLayout *toCurrencyLayout = new QHBoxLayout;
+        QLabel *toLabel = new QLabel("To:", this);
+        toCurrencyCombo = new QComboBox(this);
+        populateCurrencyCombo(toCurrencyCombo);
+        toCurrencyLayout->addWidget(toLabel);
+        toCurrencyLayout->addWidget(toCurrencyCombo);
+        mainLayout->addLayout(toCurrencyLayout);
+
+        QPushButton *convertButton = new QPushButton("Convert", this);
+        mainLayout->addWidget(convertButton);
+
+        resultLabel = new QLabel("Result: ", this);
+        mainLayout->addWidget(resultLabel);
+
+        connect(convertButton, &QPushButton::clicked, this, &CurrencyConverterWidget::convertCurrency);
+    }
+
+private slots:
+    void convertCurrency() {
+        double amount = amountEdit->text().toDouble();
+        QString fromCurrency = fromCurrencyCombo->currentText();
+        QString toCurrency = toCurrencyCombo->currentText();
+
+        double conversionRate = getConversionRate(fromCurrency, toCurrency);
+        double result = amount * conversionRate;
+
+        resultLabel->setText("Result: " + QString::number(result));
+    }
+
+private:
+    QLineEdit *amountEdit;
+    QComboBox *fromCurrencyCombo;
+    QComboBox *toCurrencyCombo;
+    QLabel *resultLabel;
+
+    void populateCurrencyCombo(QComboBox *combo) {
+        QStringList currencies = {"USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD",
+                                  "INR", "BRL", "RUB", "KRW", "ZAR", "SGD", "HKD", "MXN", "TRY", "NOK",
+                                  "AED", "DKK", "PLN", "THB", "MYR", "IDR", "CZK", "HUF","PHP",
+                                  "EGP"};
+        combo->addItems(currencies);
+    }
+
+    double getConversionRate(const QString &fromCurrency, const QString &toCurrency) {
+        QMap<QString, QMap<QString, double>> conversionRates = {
+            {"USD", {{"EUR", 0.85}, {"GBP", 0.75}, {"JPY", 110.0}, {"AUD", 1.4}, {"CAD", 1.25}, {"CHF", 0.92}, {"CNY", 6.4}, {"SEK", 8.7}, {"NZD", 1.5},
+                     {"INR", 74.0}, {"BRL", 5.2}, {"RUB", 73.0}, {"KRW", 1180.0}, {"ZAR", 14.3}, {"SGD", 1.34}, {"HKD", 7.75}, {"MXN", 20.0}, {"TRY", 8.5}, {"NOK", 8.4},
+                     {"AED", 3.67}, {"DKK", 6.3}, {"PLN", 3.8}, {"THB", 33.0}, {"MYR", 4.2}, {"IDR", 14200.0}, {"CZK", 21.8}, {"HUF", 308.0},{"PHP", 50.0},
+                     {"EGP", 61}}},
+            {"EUR", {{"USD", 1.18}, {"GBP", 0.88}, {"JPY", 130.0}, {"AUD", 1.65}, {"CAD", 1.47}, {"CHF", 1.08}, {"CNY", 7.5}, {"SEK", 10.2}, {"NZD", 1.75},
+                     {"INR", 87.0}, {"BRL", 6.1}, {"RUB", 86.0}, {"KRW", 1380.0}, {"ZAR", 16.8}, {"SGD", 1.57}, {"HKD", 9.13}, {"MXN", 23.5}, {"TRY", 10.0}, {"NOK", 9.9},
+                     {"AED", 4.33}, {"DKK", 7.44}, {"PLN", 4.5}, {"THB", 39.0}, {"MYR", 5.0}, {"IDR", 16800.0}, {"CZK", 25.7}, {"HUF", 363.0},{"PHP", 59.0},
+                     {"EGP", 50}}}
+        };
+
+        return conversionRates[fromCurrency][toCurrency];
+    }
+};
+
+
+
+class SupportWindow : public QDialog {
+public:
+    SupportWindow(QWidget *parent = nullptr) : QDialog(parent) {
+        setWindowTitle("Support Window");
+        setFixedSize(600, 300);
+
+        QVBoxLayout *mainLayout = new QVBoxLayout(this);
+        mainLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
+
+        QLabel *welcomeLabel = new QLabel("Welcome to Re7lty app", this);
+        welcomeLabel->setAlignment(Qt::AlignCenter);
+        mainLayout->addWidget(welcomeLabel);
+
+        QLabel *guideLabel = new QLabel("Here is your support guide to use the program", this);
+        mainLayout->addWidget(guideLabel);
+
+        QLabel *logoLabel = new QLabel("upper left: there is the logo and the name of our program",this);
+        mainLayout->addWidget(logoLabel);
+
+        QLabel *timeLabel = new QLabel("Upper left: Time in your country (Please make sure you're connected to the internet to display it correctly)", this);
+        mainLayout->addWidget(timeLabel);
+
+        QLabel *searchbarLabel = new QLabel("in the middle: there is a search bar. choose a country from search bar ",this);
+        mainLayout->addWidget(searchbarLabel);
+
+        QLabel *searchbar2Label = new QLabel("then you can choose wheather you want to see it on map or procced to see the place with more details",this);
+        mainLayout->addWidget(searchbar2Label);
+
+        mainLayout->addStretch();
+    }
+};
+
+class Egypt : public QDialog {
+public:
+    Egypt(const QString &country, QWidget *parent = nullptr) : QDialog(parent), selectedCountry(country) {
+        setWindowTitle("Places in " + selectedCountry);
+        setFixedSize(600, 300);
+
+        QVBoxLayout *mainLayout = new QVBoxLayout(this);
+        mainLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
+
+        QLabel *titleLabel = new QLabel("Places in " + selectedCountry, this);
+        titleLabel->setAlignment(Qt::AlignCenter);
+        mainLayout->addWidget(titleLabel);
+
+        searchBox = new QLineEdit(this);
+        searchBox->setPlaceholderText("Search places in " + selectedCountry);
+        mainLayout->addWidget(searchBox);
+
+        QStringList placesInEgypt = {
+            "Cairo", "Alexandria","Shubra El Kheima", "Port Said", "Suez", "Mansoura", "El-Mahalla El-Kubra",
+            "Tanta", "Asyut", "Ismailia", "Faiyum", "Zagazig", "Damietta", "Aswan", "Minya", "Damanhur",
+            "Beni Suef", "Qena", "Sohag", "Hurghada", "Luxor", "Sharm El Sheikh", "Banha", "Arish", "Mallawi",
+            "10th of Ramadan City", "Bilqas", "Sadat City", "Mit Ghamr", "Fakous", "Kafr El Sheikh", "Desouk",
+            "Abu Kabir", "Akhmim", "Qalyub", "Giza", "Shebin El Kom", "Banha", "Quesna", "Beni Mazar",
+            "Kafr El Dawwar", "El-Minya"
+        };
+        QCompleter *completer = new QCompleter(placesInEgypt, this);
+        searchBox->setCompleter(completer);
+
+        QPushButton *showOnMapButton = new QPushButton("Show on Map", this);
+        connect(showOnMapButton, &QPushButton::clicked, this, &Egypt::showPlaceOnMap);
+        mainLayout->addWidget(showOnMapButton);
+
+        QPushButton *closeButton = new QPushButton("Close", this);
+        connect(closeButton, &QPushButton::clicked, this, &Egypt::close);
+        mainLayout->addWidget(closeButton);
+
+        mainLayout->addStretch();
+    }
+
+private slots:
+    void showPlaceOnMap() {
+        QString place = searchBox->text();
+        if (!place.isEmpty()) {
+            QString url = "https://www.google.com/maps/place/" + place;
+            QDesktopServices::openUrl(QUrl(url));
+        } else {
+            QMessageBox::warning(this, "Empty Place", "Please enter a place to show on the map.");
+        }
+    }
+
+private:
+    QString selectedCountry;
+    QLineEdit *searchBox;
+};
+
+
+class France : public QDialog {
+public:
+    France(const QString &country, QWidget *parent = nullptr) : QDialog(parent), selectedCountry(country) {
+        setWindowTitle("Places in " + selectedCountry);
+        setFixedSize(600, 300);
+
+        QVBoxLayout *mainLayout = new QVBoxLayout(this);
+        mainLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
+
+        QLabel *titleLabel = new QLabel("Places in " + selectedCountry, this);
+        titleLabel->setAlignment(Qt::AlignCenter);
+        mainLayout->addWidget(titleLabel);
+
+        searchBox = new QLineEdit(this);
+        searchBox->setPlaceholderText("Search places in " + selectedCountry);
+        mainLayout->addWidget(searchBox);
+
+        QStringList placesInFrance = {
+            "Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Strasbourg", "Montpellier",
+            "Bordeaux", "Lille", "Rennes", "Reims", "Le Havre", "Saint-Étienne", "Toulon", "Grenoble",
+            "Dijon", "Angers", "Nîmes", "Villeurbanne", "Saint-Denis", "Clermont-Ferrand", "Le Mans",
+            "Aix-en-Provence", "Brest", "Tours", "Amiens", "Limoges", "Annecy", "Boulogne-Billancourt",
+            "Perpignan", "Metz", "Besançon", "Orléans", "Mulhouse"
+        };
+        QCompleter *completer = new QCompleter(placesInFrance, this);
+        searchBox->setCompleter(completer);
+
+        QPushButton *showOnMapButton = new QPushButton("Show on Map", this);
+        connect(showOnMapButton, &QPushButton::clicked, this, &France::showPlaceOnMap);
+        mainLayout->addWidget(showOnMapButton);
+
+        QPushButton *closeButton = new QPushButton("Close", this);
+        connect(closeButton, &QPushButton::clicked, this, &France::close);
+        mainLayout->addWidget(closeButton);
+
+        mainLayout->addStretch();
+    }
+
+private slots:
+    void showPlaceOnMap() {
+        QString place = searchBox->text();
+        if (!place.isEmpty()) {
+            QString url = "https://www.google.com/maps/place/" + place;
+            QDesktopServices::openUrl(QUrl(url));
+        } else {
+            QMessageBox::warning(this, "Empty Place", "Please enter a place to show on the map.");
+        }
+    }
+
+private:
+    QString selectedCountry;
+    QLineEdit *searchBox;
+};
+
+
+class Germany : public QDialog {
+public:
+    Germany(const QString &country, QWidget *parent = nullptr) : QDialog(parent), selectedCountry(country) {
+        setWindowTitle("Places in " + selectedCountry);
+        setFixedSize(600, 300);
+
+        QVBoxLayout *mainLayout = new QVBoxLayout(this);
+        mainLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
+
+        QLabel *titleLabel = new QLabel("Places in " + selectedCountry, this);
+        titleLabel->setAlignment(Qt::AlignCenter);
+        mainLayout->addWidget(titleLabel);
+
+        searchBox = new QLineEdit(this);
+        searchBox->setPlaceholderText("Search places in " + selectedCountry);
+        mainLayout->addWidget(searchBox);
+
+        QStringList placesInGermany = {
+            "Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt", "Stuttgart", "Düsseldorf", "Dortmund",
+            "Essen", "Leipzig", "Bremen", "Dresden", "Hannover", "Nuremberg", "Duisburg", "Bochum",
+            "Wuppertal", "Bielefeld", "Bonn", "Münster", "Karlsruhe", "Mannheim", "Augsburg", "Wiesbaden",
+            "Gelsenkirchen", "Mönchengladbach", "Braunschweig", "Chemnitz", "Kiel", "Aachen", "Halle",
+            "Magdeburg", "Freiburg", "Krefeld", "Lübeck", "Oberhausen"
+        };
+        QCompleter *completer = new QCompleter(placesInGermany, this);
+        searchBox->setCompleter(completer);
+
+        QPushButton *showOnMapButton = new QPushButton("Show on Map", this);
+        connect(showOnMapButton, &QPushButton::clicked, this, &Germany::showPlaceOnMap);
+        mainLayout->addWidget(showOnMapButton);
+
+        QPushButton *closeButton = new QPushButton("Close", this);
+        connect(closeButton, &QPushButton::clicked, this, &Germany::close);
+        mainLayout->addWidget(closeButton);
+
+        mainLayout->addStretch();
+    }
+
+private slots:
+    void showPlaceOnMap() {
+        QString place = searchBox->text();
+        if (!place.isEmpty()) {
+            QString url = "https://www.google.com/maps/place/" + place;
+            QDesktopServices::openUrl(QUrl(url));
+        } else {
+            QMessageBox::warning(this, "Empty Place", "Please enter a place to show on the map.");
+        }
+    }
+
+private:
+    QString selectedCountry;
+    QLineEdit *searchBox;
+};
+
+
+class Italy : public QDialog {
+public:
+    Italy(const QString &country, QWidget *parent = nullptr) : QDialog(parent), selectedCountry(country) {
+        setWindowTitle("Places in " + selectedCountry);
+        setFixedSize(600, 300);
+
+        QVBoxLayout *mainLayout = new QVBoxLayout(this);
+        mainLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
+
+        QLabel *titleLabel = new QLabel("Places in " + selectedCountry, this);
+        titleLabel->setAlignment(Qt::AlignCenter);
+        mainLayout->addWidget(titleLabel);
+
+        searchBox = new QLineEdit(this);
+        searchBox->setPlaceholderText("Search places in " + selectedCountry);
+        mainLayout->addWidget(searchBox);
+
+        QStringList placesInItaly = {
+            "Rome", "Milan", "Naples", "Turin", "Palermo", "Genoa", "Bologna", "Florence",
+            "Bari", "Catania", "Venice", "Verona", "Messina", "Padua", "Trieste", "Brescia",
+            "Parma", "Taranto", "Modena", "Reggio Calabria", "Reggio Emilia", "Perugia", "Livorno",
+            "Ravenna", "Cagliari", "Foggia", "Rimini", "Salerno", "Ferrara", "Sassari", "Latina",
+            "Giugliano in Campania", "Monza", "Siracusa", "Pescara", "Bergamo"
+        };
+        QCompleter *completer = new QCompleter(placesInItaly, this);
+        searchBox->setCompleter(completer);
+
+        QPushButton *showOnMapButton = new QPushButton("Show on Map", this);
+        connect(showOnMapButton, &QPushButton::clicked, this, &Italy::showPlaceOnMap);
+        mainLayout->addWidget(showOnMapButton);
+
+        QPushButton *closeButton = new QPushButton("Close", this);
+        connect(closeButton, &QPushButton::clicked, this, &Italy::close);
+        mainLayout->addWidget(closeButton);
+
+        mainLayout->addStretch();
+    }
+
+private slots:
+    void showPlaceOnMap() {
+        QString place = searchBox->text();
+        if (!place.isEmpty()) {
+            QString url = "https://www.google.com/maps/place/" + place;
+            QDesktopServices::openUrl(QUrl(url));
+        } else {
+            QMessageBox::warning(this, "Empty Place", "Please enter a place to show on the map.");
+        }
+    }
+
+private:
+    QString selectedCountry;
+    QLineEdit *searchBox;
+};
+
+
+
+class Turkey : public QDialog {
+public:
+    Turkey(const QString &country, QWidget *parent = nullptr) : QDialog(parent), selectedCountry(country) {
+        setWindowTitle("Places in " + selectedCountry);
+        setFixedSize(600, 300);
+
+        QVBoxLayout *mainLayout = new QVBoxLayout(this);
+        mainLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
+
+        QLabel *titleLabel = new QLabel("Places in " + selectedCountry, this);
+        titleLabel->setAlignment(Qt::AlignCenter);
+        mainLayout->addWidget(titleLabel);
+
+        searchBox = new QLineEdit(this);
+        searchBox->setPlaceholderText("Search places in " + selectedCountry);
+        mainLayout->addWidget(searchBox);
+
+        QStringList placesInTurkey = {
+            "Istanbul", "Ankara", "Izmir", "Bursa", "Adana", "Gaziantep", "Konya", "Antalya",
+            "Kayseri", "Mersin", "Eskisehir", "Diyarbakir", "Samsun", "Denizli", "Sanliurfa",
+            "Malatya", "Kahramanmaras", "Van", "Batman", "Balikesir", "Sakarya", "Trabzon",
+            "Elazig", "Kocaeli", "Manisa", "Sivas", "Tarsus", "Sakarya", "Corlu", "Hatay",
+            "Afyonkarahisar", "Kütahya", "Isparta", "Ordu", "Aydin", "Tekirdag"
+        };
+        QCompleter *completer = new QCompleter(placesInTurkey, this);
+        searchBox->setCompleter(completer);
+
+        QPushButton *showOnMapButton = new QPushButton("Show on Map", this);
+        connect(showOnMapButton, &QPushButton::clicked, this, &Turkey::showPlaceOnMap);
+        mainLayout->addWidget(showOnMapButton);
+
+        QPushButton *closeButton = new QPushButton("Close", this);
+        connect(closeButton, &QPushButton::clicked, this, &Turkey::close);
+        mainLayout->addWidget(closeButton);
+
+        mainLayout->addStretch();
+    }
+
+private slots:
+    void showPlaceOnMap() {
+        QString place = searchBox->text();
+        if (!place.isEmpty()) {
+            QString url = "https://www.google.com/maps/place/" + place;
+            QDesktopServices::openUrl(QUrl(url));
+        } else {
+            QMessageBox::warning(this, "Empty Place", "Please enter a place to show on the map.");
+        }
+    }
+
+private:
+    QString selectedCountry;
+    QLineEdit *searchBox;
+};
+
+
+class Canada : public QDialog {
+public:  // set parent to null
+    Canada(const QString &country, QWidget *parent = nullptr) : QDialog(parent), selectedCountry(country) {
+        setWindowTitle("Places in " + selectedCountry);
+        setFixedSize(600, 300);
+
+        QVBoxLayout *mainLayout = new QVBoxLayout(this);
+        mainLayout->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
+
+        QLabel *titleLabel = new QLabel("Places in " + selectedCountry, this);
+        titleLabel->setAlignment(Qt::AlignCenter);
+        mainLayout->addWidget(titleLabel);
+
+        searchBox = new QLineEdit(this);
+        searchBox->setPlaceholderText("Search places in " + selectedCountry);
+        mainLayout->addWidget(searchBox);
+        //define the places within canada
+        QStringList placesInCanada = {
+            "Ottawa", "Toronto", "Montreal", "Vancouver", "Calgary", "Edmonton", "Winnipeg", "Quebec City",
+            "Hamilton", "London", "Kitchener", "Victoria", "Halifax", "Oshawa", "Windsor", "Saskatoon", "Regina",
+            "St. John's", "Barrie", "Kelowna", "Guelph", "Kingston", "Thunder Bay", "Waterloo", "Saint John", "Brantford",
+            "Red Deer", "Nanaimo", "Lethbridge", "Kamloops", "Chilliwack", "Peterborough", "Sarnia", "Sault Ste. Marie", "Nanaimo",
+            "Burlington", "Ajax", "Fredericton", "Saint-Jérôme", "Newmarket", "Vernon", "Caledon", "Châteauguay", "Drummondville",
+            "Saint-Jean-sur-Richelieu", "Lloydminster"
+        };
+        QCompleter *completer = new QCompleter(placesInCanada, this);
+        searchBox->setCompleter(completer);
+
+        QPushButton *showOnMapButton = new QPushButton("Show on Map", this);
+        connect(showOnMapButton, &QPushButton::clicked, this, &Canada::showPlaceOnMap);
+        mainLayout->addWidget(showOnMapButton);
+
+
+        QPushButton *closeButton = new QPushButton("Close", this);
+        connect(closeButton, &QPushButton::clicked, this, &Canada::close);
+        mainLayout->addWidget(closeButton);
+
+        mainLayout->addStretch();
+    }
+// open URL for place choosen
+private slots:
+    void showPlaceOnMap() {
+        QString place = searchBox->text();
+        if (!place.isEmpty()) {
+            QString url = "https://www.google.com/maps/place/" + place;
+            QDesktopServices::openUrl(QUrl(url));
+        } else {
+            QMessageBox::warning(this, "Empty Place", "Please enter a place to show on the map.");
+        }
+    }
+
+
+
+private:
+    QString selectedCountry;
+    QLineEdit *searchBox;
+};
+
+
+
+
+class GUI : public QWidget {
+public:
+    GUI(QWidget *parent = nullptr) : QWidget(parent) {
+        setWindowTitle("Re7lty");
+        setGeometry(0, 0, 1920, 1280);
+        // photo display
+        QPixmap backgroundImage("D:/C++ oop project/yaraaaab/Explore the world.png");
+        QPalette pal;
+        backgroundImage = backgroundImage.scaled(1550, 920);
+        pal.setBrush(this->backgroundRole(), QBrush(backgroundImage));
+        this->setPalette(pal);
+        this->setAutoFillBackground(true);
+
+        setupUi();
+    }
+
+private: // Ui function for displaying all necessary thigns
+    void setupUi() {
+        Support = new QPushButton("Support", this);
+        Support->setGeometry(1320, 20, 200, 35);
+        connect(Support, &QPushButton::clicked, this, &GUI::openSupportWindow);
+
+        timeLabel = new QLabel(this);
+        timeLabel->setGeometry(37, 65, 220, 100);
+        timeLabel->setStyleSheet("color:black; font-size:60px");
+        updateTime();
+        // make search box
+        searchBox = new QLineEdit(this);
+        searchBox->setPlaceholderText("Search.... ");
+        searchBox->setGeometry(560, 450, 400, 40);
+
+        QStringList countries = {
+            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola",
+            "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria",
+            "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados",
+            "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
+            "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei",
+            "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia",
+            "Cameroon", "Canada", "Central African Republic", "Chad", "Chile",
+            "China", "Colombia", "Comoros", "Congo", "Costa Rica",
+            "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark",
+            "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt",
+            "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini",
+            "Ethiopia", "Fiji", "Finland", "France", "Gabon",
+            "Gambia", "Georgia", "Germany", "Ghana", "Greece",
+            "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
+            "Haiti", "Honduras", "Hungary", "Iceland", "India",
+            "Indonesia", "Iran", "Iraq", "Ireland", "Israel",
+            "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan",
+            "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan",
+            "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia",
+            "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar",
+            "Malawi", "Malaysia", "Maldives", "Mali", "Malta",
+            "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
+            "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco",
+            "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal",
+            "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria",
+            "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan",
+            "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay",
+            "Peru", "Philippines", "Poland", "Portugal", "Qatar",
+            "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia",
+            "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia",
+            "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore",
+            "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa",
+            "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan",
+            "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan",
+            "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo",
+            "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan",
+            "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
+            "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City",
+            "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+        };
+        QCompleter *completer = new QCompleter(countries, this);
+        searchBox->setCompleter(completer);
+
+        googleMapbutton = new QPushButton("See on map 🌍", this);
+        googleMapbutton->setGeometry(560, 500, 200, 38);
+        connect(googleMapbutton, &QPushButton::clicked, this, &GUI::handleGoogleMapButtonClick);
+
+        SearchIcon = new QPushButton("", this);
+        SearchIcon->setGeometry(910, 450, 60, 40);
+        SearchIcon->setStyleSheet("background-color: transparent;");
+        QIcon searchIcon("C:/Users/omera/Downloads/icons8-search-64.png");
+        SearchIcon->setIcon(searchIcon);
+        SearchIcon->setIconSize(QSize(35, 35));
+        SearchIcon->setFlat(true);
+        connect(SearchIcon, &QPushButton::clicked, this, &GUI::handleGoogleMapButtonClick);
+
+        currencyConverterButton = new QPushButton("Currency Converter", this);
+        currencyConverterButton->setGeometry(1320, 60, 200, 35);
+        connect(currencyConverterButton, &QPushButton::clicked, this, &GUI::openCurrencyConverter);
+
+        QTimer *timer = new QTimer(this);
+        connect(timer, &QTimer::timeout, this, &GUI::updateTime);
+        timer->start(1000);
+    }
+
+    void openSupportWindow() {
+        SupportWindow *window = new SupportWindow(this);
+        window->exec();
+    }
+
+    void openCurrencyConverter() {
+        CurrencyConverterWidget *converter = new CurrencyConverterWidget();
+        converter->exec();
+        delete converter;
+    }
+    // update time every 1000 miliseconds = 1 sec
+    void updateTime() {
+        QTime currentTime = QTime::currentTime();
+        QString time = currentTime.toString("hh:mm:ss");
+        timeLabel->setText(time);
+    }
+
+    void handleGoogleMapButtonClick() {
+        QString searchTerm = searchBox->text().toLower();
+
+        if (searchTerm == "canada") {
+            Canada *placesWindow = new Canada("Canada", this);
+            placesWindow->exec();
+        }
+        else if (searchTerm == "egypt") {
+            Egypt *placesWindow = new Egypt("Egypt", this);
+            placesWindow->exec();
+        }
+        else if (searchTerm == "france") {
+            France *placesWindow = new France("France", this);
+            placesWindow->exec();
+        }
+        else if (searchTerm == "germany") {
+            Germany *placesWindow = new Germany("Germany", this);
+            placesWindow->exec();
+        }
+        else if (searchTerm == "italy") {
+            Italy *placesWindow = new Italy("Italy", this);
+            placesWindow->exec();
+        }
+        else if (searchTerm == "turkey") {
+            Turkey *placesWindow = new Turkey("Turkey", this);
+            placesWindow->exec();
+        }
+        else {
+            QMessageBox::warning(this, "Not supported yet", "Stay tuned.");
+        }
+        // making sure the written country is within the search bar
+        bool validCountry = false;
+        for (const QString &country : QStringList{
+                 "Afghanistan", "Albania", "Algeria", "Andorra", "Angola",
+                 "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria",
+                 "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados",
+                 "Belarus", "Belgium", "Belize", "Benin", "Bhutan",
+                 "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei",
+                 "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia",
+                 "Cameroon", "Canada", "Central African Republic", "Chad", "Chile",
+                 "China", "Colombia", "Comoros", "Congo", "Costa Rica",
+                 "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark",
+                 "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt",
+                 "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini",
+                 "Ethiopia", "Fiji", "Finland", "France", "Gabon",
+                 "Gambia", "Georgia", "Germany", "Ghana", "Greece",
+                 "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
+                 "Haiti", "Honduras", "Hungary", "Iceland", "India",
+                 "Indonesia", "Iran", "Iraq", "Ireland", "Israel",
+                 "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan",
+                 "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan",
+                 "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia",
+                 "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar",
+                 "Malawi", "Malaysia", "Maldives", "Mali", "Malta",
+                 "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
+                 "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco",
+                 "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal",
+                 "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria",
+                 "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan",
+                 "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay",
+                 "Peru", "Philippines", "Poland", "Portugal", "Qatar",
+                 "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia",
+                 "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia",
+                 "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore",
+                 "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa",
+                 "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan",
+                 "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan",
+                 "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo",
+                 "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan",
+                 "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
+                 "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City",
+                 "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+             }) {
+            if (searchTerm.toLower() == country.toLower()) {
+                validCountry = true;
+                break;
+            }
+        }
+
+        if (validCountry) {
+            QString url = "https://www.google.com/maps/place/" + searchTerm;
+            QDesktopServices::openUrl(QUrl(url));
+        } else {
+            QMessageBox::warning(this, "Invalid Country", "Please enter a valid country name.");
+        }
+    }
+    // define the the widget things
+    QLabel *timeLabel;
+    QLineEdit *searchBox;
+    QPushButton *googleMapbutton;
+    QPushButton *SearchIcon;
+    QPushButton *Support;
+    QLabel *Currency;
+    QLabel *Search;
+    QPushButton *currencyConverterButton;
+};
+
+
+
+
+// main function to run the program
+int main(int argc, char *argv[]) {
+    QApplication home(argc, argv);
+    GUI gui;
+    gui.show();
+    return home.exec();
+
+}
